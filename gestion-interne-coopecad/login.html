@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Connexion — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-login-wrapper">
+    <div class="admin-login-card">
+      <h1>Espace administrateur</h1>
+      <p>COOPEC-AD/BENIN — Accès réservé au directeur</p>
+
+      <div id="alerte" class="admin-alerte"></div>
+
+      <form id="form-login">
+        <div class="form-group">
+          <label for="email">Adresse email</label>
+          <input type="email" id="email" class="form-control" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="mot-de-passe">Mot de passe</label>
+          <input type="password" id="mot-de-passe" class="form-control" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Se connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const form = document.getElementById('form-login');
+    const alerte = document.getElementById('alerte');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masquerAlerte(alerte);
+
+      const email = document.getElementById('email').value.trim();
+      const motDePasse = document.getElementById('mot-de-passe').value;
+
+      try {
+        const reponse = await fetch('../api/admin/login.php', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, mot_de_passe: motDePasse }),
+        });
+        const corps = await reponse.json();
+
+        if (!reponse.ok) {
+          afficherAlerte(alerte, corps.erreur || 'Connexion impossible.', 'erreur');
+          return;
+        }
+
+        window.location.href = 'index.html';
+      } catch (err) {
+        afficherAlerte(alerte, 'Erreur réseau — vérifiez votre connexion.', 'erreur');
+      }
+    });
+  </script>
+</body>
+</html>

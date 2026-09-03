@@ -1,0 +1,230 @@
+/**
+ * COOPEC-AD/BENIN — Logique principale du site (main.js)
+ * Gère la navigation mobile, l'injection dynamique des chiffres clés,
+ * l'accordéon FAQ, la validation du formulaire de contact et le bouton WhatsApp.
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Contrôle d'intégrité de la source de données
+  if (!window.COOPEC_DATA || !COOPEC_DATA.institution || !COOPEC_DATA.agences) {
+    console.error('[main.js] Erreur critique : COOPEC_DATA est absent ou incomplet.');
+    return;
+  }
+
+  initNavigation();
+  injectDynamicData();
+  initFAQ();
+  initContactForm();
+  initWhatsAppButton();
+});
+
+/**
+ * 2. Gestion du menu de navigation responsive
+ */
+function initNavigation() {
+  const burgerBtn = document.querySelector('.btn-burger');
+  const mainNav = document.querySelector('.main-nav');
+  
+  if (!burgerBtn || !mainNav) return;
+
+  burgerBtn.addEventListener('click', () => {
+    const isOpen = mainNav.classList.toggle('is-open');
+    burgerBtn.classList.toggle('is-active', isOpen);
+    burgerBtn.setAttribute('aria-expanded', isOpen);
+  });
+
+  // Fermer le menu lors d'un clic sur un lien
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      mainNav.classList.remove('is-open');
+      burgerBtn.classList.remove('is-active');
+    });
+  });
+
+  // Fermer le menu au clic en dehors
+  document.addEventListener('click', (e) => {
+    if (mainNav.classList.contains('is-open') && !mainNav.contains(e.target) && !burgerBtn.contains(e.target)) {
+      mainNav.classList.remove('is-open');
+      burgerBtn.classList.remove('is-active');
+    }
+  });
+}
+
+/**
+ * 3. Injection dynamique des chiffres clés (Règle d'or : JAMAIS de chiffres écrits en dur)
+ */
+function injectDynamicData() {
+  const data = window.COOPEC_DATA;
+
+  // Nombre d'agences calculé dynamiquement
+  document.querySelectorAll('[data-bind="agences-count"]').forEach(el => {
+    el.textContent = data.agences.length;
+  });
+
+  // Nombre de membres
+  document.querySelectorAll('[data-bind="membres-count"]').forEach(el => {
+    el.textContent = `+${data.institution.membres.toLocaleString('fr-FR')}`;
+  });
+
+  // Années d'expérience calculées dynamiquement depuis l'année de création
+  const annees = new Date().getFullYear() - data.institution.anneeCreation;
+  document.querySelectorAll('[data-bind="experience-count"]').forEach(el => {
+    el.textContent = `+${annees} ans`;
+  });
+
+  // Contacts
+  document.querySelectorAll('[data-bind="institution-tel"]').forEach(el => {
+    el.textContent = data.institution.telephones.join(' / ');
+  });
+
+  document.querySelectorAll('[data-bind="institution-email"]').forEach(el => {
+    el.textContent = data.institution.email;
+    if (el.tagName === 'A') {
+      el.href = `mailto:${data.institution.email}`;
+    }
+  });
+
+  document.querySelectorAll('[data-bind="agrement-bceao"]').forEach(el => {
+    el.textContent = data.institution.agrementBCEAO;
+  });
+
+  document.querySelectorAll('[data-bind="ifu"]').forEach(el => {
+    el.textContent = data.institution.ifu;
+  });
+}
+
+/**
+ * 4. Gestion de l'accordéon FAQ
+ */
+function initFAQ() {
+  const faqContainer = document.querySelector('#faq-accordion');
+  if (!faqContainer || !COOPEC_DATA.faq) return;
+
+  // Si le conteneur est vide, on injecte la FAQ de démarrage issue de data.js
+  if (faqContainer.children.length === 0 && COOPEC_DATA.faq.length > 0) {
+    faqContainer.innerHTML = COOPEC_DATA.faq.map((item, index) => `
+      <div class="faq-item">
+        <button class="faq-question" type="button" aria-expanded="${index === 0 ? 'true' : 'false'}">
+          <span>${item.question}</span>
+          <span class="faq-icon">▾</span>
+        </button>
+        <div class="faq-answer ${index === 0 ? 'show' : ''}">
+          <p>${item.reponse}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Écouteur d'événement sur les questions
+  faqContainer.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const answer = btn.nextElementSibling;
+      const isAlreadyOpen = answer.classList.contains('show');
+
+      // Fermer tous les autres
+      faqContainer.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('show'));
+      faqContainer.querySelectorAll('.faq-question').forEach(q => {
+        q.classList.remove('active');
+        q.setAttribute('aria-expanded', 'false');
+      });
+
+      if (!isAlreadyOpen) {
+        answer.classList.add('show');
+        btn.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+}
+
+/**
+ * 5. Validation et soumission sécurisée du formulaire de contact
+ */
+function initContactForm() {
+  const form = document.querySelector('#contact-form');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const nomInput = form.querySelector('#contact-nom');
+    const telInput = form.querySelector('#contact-tel');
+    const msgInput = form.querySelector('#contact-message');
+    const statusBox = form.querySelector('#contact-status') || createStatusBox(form);
+
+    let isValid = true;
+    let errorMsg = '';
+
+    // Validation du Nom
+    if (!nomInput || nomInput.value.trim().length < 2) {
+      isValid = false;
+      errorMsg = 'Veuillez saisir votre nom complet.';
+    }
+
+    // Validation Téléphone Bénin (+229 ou 8 chiffres)
+    const telVal = telInput ? telInput.value.replace(/\s+/g, '') : '';
+    const beninPhoneRegex = /^(?:\+?229)?[0-9]{8}$/;
+    if (isValid && (!telVal || !beninPhoneRegex.test(telVal))) {
+      isValid = false;
+      errorMsg = 'Veuillez saisir un numéro de téléphone béninois valide (ex: 94 01 78 36 ou +229 94 01 78 36).';
+    }
+
+    // Validation Message (min 10 caractères)
+    if (isValid && (!msgInput || msgInput.value.trim().length < 10)) {
+      isValid = false;
+      errorMsg = 'Votre message doit contenir au moins 10 caractères.';
+    }
+
+    if (!isValid) {
+      statusBox.innerHTML = `<div class="simulator-disclaimer" style="background-color: var(--color-red-light); border-color: var(--color-red); color: var(--color-red);">⚠ ${errorMsg}</div>`;
+      return;
+    }
+
+    // Succès
+    const emailDest = COOPEC_DATA.institution.email;
+    statusBox.innerHTML = `
+      <div class="simulator-disclaimer" style="background-color: var(--color-green-light); border-color: var(--color-green); color: var(--color-green-dark);">
+        ✓ Merci ${escapeHtml(nomInput.value.trim())} ! Votre message a été préparé pour le service clientèle (${emailDest}).<br>
+        Vous pouvez également nous joindre directement au <strong>${COOPEC_DATA.institution.telephones[0]}</strong>.
+      </div>
+    `;
+
+    // Redirection propre via mailto (sans stockage serveur)
+    const subject = encodeURIComponent(`Contact Site Web — ${nomInput.value.trim()}`);
+    const body = encodeURIComponent(`Nom : ${nomInput.value.trim()}\nTéléphone : ${telInput.value.trim()}\n\nMessage :\n${msgInput.value.trim()}`);
+    
+    // Déclenchement de l'envoi client
+    window.location.href = `mailto:${emailDest}?subject=${subject}&body=${body}`;
+    form.reset();
+  });
+}
+
+function createStatusBox(form) {
+  const div = document.createElement('div');
+  div.id = 'contact-status';
+  div.style.marginTop = '1rem';
+  form.appendChild(div);
+  return div;
+}
+
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+/**
+ * 6. Initialisation du bouton WhatsApp flottant
+ */
+function initWhatsAppButton() {
+  const waBtn = document.querySelector('#whatsapp-btn');
+  if (!waBtn) return;
+
+  const phone = COOPEC_DATA.institution.telephoneWhatsApp || '+22994017836';
+  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  const message = encodeURIComponent('Bonjour COOPEC-AD/BENIN, je souhaite avoir des informations sur vos services.');
+  
+  waBtn.href = `https://wa.me/${cleanPhone}?text=${message}`;
+  waBtn.target = '_blank';
+  waBtn.rel = 'noopener noreferrer';
+  waBtn.setAttribute('aria-label', 'Contacter la COOPEC-AD sur WhatsApp');
+}

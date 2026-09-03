@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Institution — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link active">Institution</a>
+      <a href="agences.html" class="admin-nav-link">Agences</a>
+      <a href="actualites.html" class="admin-nav-link">Actualités</a>
+      <a href="messages.html" class="admin-nav-link">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Institution</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
+        Cas 1 — Singleton : une seule fiche, uniquement modifiable.
+      </p>
+
+      <div class="admin-panel">
+        <div id="alerte" class="admin-alerte"></div>
+
+        <form id="form-institution">
+          <div class="simulator-form-grid">
+            <div>
+              <div class="form-group">
+                <label for="nom_court">Nom court</label>
+                <input type="text" id="nom_court" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="telephone_principal">Téléphone principal</label>
+                <input type="text" id="telephone_principal" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="membres_count">Nombre de membres</label>
+                <input type="number" id="membres_count" class="form-control" min="0">
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label for="horaires_texte">Horaires d'ouverture</label>
+                <textarea id="horaires_texte" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="vision">Vision</label>
+                <textarea id="vision" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="mission">Mission</label>
+                <textarea id="mission" class="form-control" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const alerte = document.getElementById('alerte');
+    const form = document.getElementById('form-institution');
+    const champs = ['nom_court', 'telephone_principal', 'email', 'membres_count', 'horaires_texte', 'vision', 'mission'];
+
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    async function chargerInstitution() {
+      try {
+        const donnees = await appelAdmin('../api/public/institution.php');
+        champs.forEach((c) => { document.getElementById(c).value = donnees[c] ?? ''; });
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masquerAlerte(alerte);
+
+      const corps = {};
+      champs.forEach((c) => { corps[c] = document.getElementById(c).value; });
+
+      try {
+        await appelAdmin('../api/admin/institution.php', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(corps),
+        });
+        afficherAlerte(alerte, 'Institution mise à jour avec succès.', 'succes');
+      } catch (err) {
+        const detail = err.champs && Object.values(err.champs)[0];
+        afficherAlerte(alerte, detail || err.message, 'erreur');
+      }
+    });
+
+    chargerInstitution();
+  </script>
+</body>
+</html>

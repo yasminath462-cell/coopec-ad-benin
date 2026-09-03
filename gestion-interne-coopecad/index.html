@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tableau de bord — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link active">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link">Institution</a>
+      <a href="agences.html" class="admin-nav-link">Agences</a>
+      <a href="actualites.html" class="admin-nav-link">Actualités</a>
+      <a href="messages.html" class="admin-nav-link">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Tableau de bord</h1>
+      <div class="admin-panel">
+        <p style="color: var(--color-text-light);">
+          Bienvenue dans l'espace administrateur. Utilisez le menu à gauche pour gérer le contenu du site :
+          l'institution, les agences, les actualités et les messages reçus via le formulaire de contact.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    // Vérifie la session dès l'arrivée sur le tableau de bord : si elle n'est pas valide,
+    // appelAdmin() redirige automatiquement vers login.html (voir js/admin-api.js).
+    appelAdmin('../api/admin/agences.php').catch(() => {});
+  </script>
+</body>
+</html>

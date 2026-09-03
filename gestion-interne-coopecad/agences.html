@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Agences — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link">Institution</a>
+      <a href="agences.html" class="admin-nav-link active">Agences</a>
+      <a href="actualites.html" class="admin-nav-link">Actualités</a>
+      <a href="messages.html" class="admin-nav-link">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Agences</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
+        Cas 2a — Liste complète, sans notion de brouillon : les 4 opérations.
+      </p>
+
+      <div class="admin-panel">
+        <div id="alerte" class="admin-alerte"></div>
+        <h3 id="titre-formulaire" style="color: var(--color-green-dark); margin-bottom: 1rem;">Ajouter une agence</h3>
+
+        <form id="form-agence">
+          <input type="hidden" id="agence-id">
+          <div class="simulator-form-grid">
+            <div>
+              <div class="form-group">
+                <label for="nom">Nom de l'agence</label>
+                <input type="text" id="nom" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="departement">Département</label>
+                <input type="text" id="departement" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="text" id="telephone" class="form-control">
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label for="repere">Repère</label>
+                <textarea id="repere" class="form-control" rows="2"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="lat">Latitude</label>
+                <input type="number" step="0.000001" id="lat" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="lng">Longitude</label>
+                <input type="number" step="0.000001" id="lng" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label><input type="checkbox" id="est_siege" style="width:auto; margin-right:0.5rem;">Est le siège social</label>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button type="submit" class="btn btn-primary" id="btn-submit-agence">Ajouter</button>
+            <button type="button" class="btn btn-secondary" id="btn-annuler" style="display:none;">Annuler la modification</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-panel">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr><th>Nom</th><th>Département</th><th>Téléphone</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="corps-tableau-agences"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const alerte = document.getElementById('alerte');
+    const form = document.getElementById('form-agence');
+    const corpsTableau = document.getElementById('corps-tableau-agences');
+    const btnSubmit = document.getElementById('btn-submit-agence');
+    const btnAnnuler = document.getElementById('btn-annuler');
+    const titreFormulaire = document.getElementById('titre-formulaire');
+
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    function reinitialiserFormulaire() {
+      form.reset();
+      document.getElementById('agence-id').value = '';
+      btnSubmit.textContent = 'Ajouter';
+      titreFormulaire.textContent = 'Ajouter une agence';
+      btnAnnuler.style.display = 'none';
+    }
+
+    async function chargerAgences() {
+      try {
+        const agences = await appelAdmin('../api/admin/agences.php');
+        corpsTableau.innerHTML = agences.map((a) => `
+          <tr>
+            <td>${a.nom}</td>
+            <td>${a.departement}</td>
+            <td>${a.telephone || ''}</td>
+            <td class="admin-table-actions">
+              <button class="btn btn-sm btn-secondary" onclick='remplirFormulaire(${JSON.stringify(a)})'>Modifier</button>
+              <button class="btn btn-sm btn-red" onclick="supprimerAgence(${a.id}, '${a.nom.replace(/'/g, "\\'")}')">Supprimer</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    function remplirFormulaire(a) {
+      document.getElementById('agence-id').value = a.id;
+      document.getElementById('nom').value = a.nom;
+      document.getElementById('departement').value = a.departement;
+      document.getElementById('telephone').value = a.telephone || '';
+      document.getElementById('repere').value = a.repere || '';
+      document.getElementById('lat').value = a.lat;
+      document.getElementById('lng').value = a.lng;
+      document.getElementById('est_siege').checked = !!Number(a.est_siege);
+      btnSubmit.textContent = 'Enregistrer les modifications';
+      titreFormulaire.textContent = `Modifier : ${a.nom}`;
+      btnAnnuler.style.display = 'inline-flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function supprimerAgence(id, nom) {
+      if (!confirm(`Supprimer définitivement l'agence "${nom}" ?`)) return;
+      try {
+        await appelAdmin(`../api/admin/agences.php?id=${id}`, { method: 'DELETE' });
+        chargerAgences();
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    btnAnnuler.addEventListener('click', reinitialiserFormulaire);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masquerAlerte(alerte);
+
+      const id = document.getElementById('agence-id').value;
+      const corps = {
+        nom: document.getElementById('nom').value,
+        departement: document.getElementById('departement').value,
+        telephone: document.getElementById('telephone').value,
+        repere: document.getElementById('repere').value,
+        lat: parseFloat(document.getElementById('lat').value),
+        lng: parseFloat(document.getElementById('lng').value),
+        est_siege: document.getElementById('est_siege').checked,
+      };
+
+      try {
+        if (id) {
+          await appelAdmin(`../api/admin/agences.php?id=${id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps),
+          });
+          afficherAlerte(alerte, 'Agence mise à jour.', 'succes');
+        } else {
+          await appelAdmin('../api/admin/agences.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps),
+          });
+          afficherAlerte(alerte, 'Agence créée.', 'succes');
+        }
+        reinitialiserFormulaire();
+        chargerAgences();
+      } catch (err) {
+        const detail = err.champs && Object.values(err.champs)[0];
+        afficherAlerte(alerte, detail || err.message, 'erreur');
+      }
+    });
+
+    chargerAgences();
+  </script>
+</body>
+</html>

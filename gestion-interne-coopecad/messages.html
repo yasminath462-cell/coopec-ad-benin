@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Messages reçus — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link">Institution</a>
+      <a href="agences.html" class="admin-nav-link">Agences</a>
+      <a href="actualites.html" class="admin-nav-link">Actualités</a>
+      <a href="messages.html" class="admin-nav-link active">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Messages reçus</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
+        Cas 3 — Aucune création ici : ces lignes arrivent uniquement via le formulaire de contact public.
+      </p>
+
+      <div class="admin-panel">
+        <div id="alerte" class="admin-alerte"></div>
+        <div id="liste-messages" style="display:flex; flex-direction:column; gap:1rem;"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const alerte = document.getElementById('alerte');
+    const listeMessages = document.getElementById('liste-messages');
+
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    async function chargerMessages() {
+      try {
+        const messages = await appelAdmin('../api/admin/demandes-contact.php');
+        if (messages.length === 0) {
+          listeMessages.innerHTML = '<p style="color: var(--color-muted);">Aucun message reçu pour le moment.</p>';
+          return;
+        }
+        listeMessages.innerHTML = messages.map((m) => `
+          <div class="card-item" style="border-left: 4px solid ${m.lu ? 'var(--color-border)' : 'var(--color-red)'};">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:0.5rem;">
+              <div>
+                <strong>${m.nom}</strong>
+                ${!m.lu ? '<span class="admin-badge-non-lu">Non lu</span>' : ''}
+                <div style="font-size:0.85rem; color:var(--color-muted);">${m.telephone} — ${m.date_envoi}</div>
+              </div>
+              ${!m.lu ? `<button class="btn btn-sm btn-secondary" onclick="marquerLu(${m.id})">Marquer comme lu</button>` : ''}
+            </div>
+            <p style="font-size:0.925rem; color:var(--color-text-light);">${m.message}</p>
+          </div>
+        `).join('');
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    async function marquerLu(id) {
+      try {
+        await appelAdmin(`../api/admin/demandes-contact.php?id=${id}`, { method: 'PATCH' });
+        chargerMessages();
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    chargerMessages();
+  </script>
+</body>
+</html>

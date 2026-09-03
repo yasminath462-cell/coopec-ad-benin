@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact & Siège Social — COOPEC-AD/BENIN</title>
+  <meta name="description" content="Contactez le service clientèle et le siège social de la COOPEC-AD/BENIN à Godomey-Togoudo : formulaire de message, téléphones, email et WhatsApp direct.">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="container topbar-content">
+      <div class="topbar-left">
+        <span class="topbar-item">📞 <a href="tel:94017836" data-bind="institution-tel">94 01 78 36 / 95 28 20 81 / 95 71 95 41</a></span>
+        <span class="topbar-item">✉ <a href="mailto:coopec.adbenin@gmail.com" data-bind="institution-email">coopec.adbenin@gmail.com</a></span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-item">📍 Siège : Godomey-Togoudo, Maison CHATIGRE Julie</span>
+        <span class="topbar-badge">SFD Agréé BCEAO N° A.15.0105.A</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-link">
+        <img src="assets/logo.png" alt="Logo officiel COOPEC-AD/BENIN" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">COOPEC-AD / BENIN</span>
+          <span class="brand-sub">Coopérative d'Épargne et de Crédit des Assemblées de Dieu du Bénin</span>
+        </div>
+      </a>
+
+      <nav class="main-nav" aria-label="Navigation principale">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">Accueil</a></li>
+          <li><a href="qui-sommes-nous.html" class="nav-link">Qui sommes-nous ?</a></li>
+          <li><a href="nos-services.html" class="nav-link">Nos services</a></li>
+          <li><a href="nos-credits.html" class="nav-link">Nos crédits</a></li>
+          <li><a href="devenir-membre.html" class="nav-link">Devenir membre</a></li>
+          <li><a href="nos-agences.html" class="nav-link">Nos agences (<span data-bind="agences-count">12</span>)</a></li>
+          <li><a href="actualites.html" class="nav-link">Actualités</a></li>
+          <li><a href="carrieres.html" class="nav-link">Carrières</a></li>
+          <li><a href="contact.html" class="nav-link active">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <a href="devenir-membre.html" class="btn btn-primary">Devenir membre</a>
+        <button class="btn-burger" type="button" aria-label="Ouvrir le menu mobile" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container page-header-content">
+      <div class="breadcrumb">
+        <a href="index.html">Accueil</a> <span>/</span> <span>Contact</span>
+      </div>
+      <h1 class="page-title">Contactez-nous</h1>
+      <p class="page-desc">Notre service clientèle et nos conseillers en agence sont à votre écoute pour vous orienter et répondre à toutes vos questions.</p>
+    </div>
+  </div>
+
+  <main>
+    <section class="section">
+      <div class="container contact-grid">
+        
+        <!-- FORMULAIRE DE CONTACT -->
+        <div class="contact-card">
+          <h2 style="color: var(--color-green-dark); margin-bottom: 0.5rem; font-size: 1.5rem;">Envoyez-nous un message</h2>
+          <p style="color: var(--color-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+            Remplissez ce formulaire et notre service clientèle vous répondra dans les meilleurs délais.
+          </p>
+
+          <form id="contact-form">
+            <div class="form-group">
+              <label for="contact-nom">Nom et Prénoms *</label>
+              <input type="text" id="contact-nom" class="form-control" placeholder="Ex. Jean DOSSOU" required>
+            </div>
+
+            <div class="form-group">
+              <label for="contact-tel">Numéro de téléphone (Bénin) *</label>
+              <input type="tel" id="contact-tel" class="form-control" placeholder="Ex. 94 01 78 36 ou +229 94 01 78 36" required>
+              <small style="color: var(--color-muted); font-size: 0.8rem;">Format à 8 chiffres accepté avec ou sans l'indicatif +229.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="contact-message">Votre message ou demande *</label>
+              <textarea id="contact-message" class="form-control" rows="5" placeholder="Décrivez votre besoin (ouverture de compte, information sur un crédit, localisation d'agence...)" required></textarea>
+            </div>
+
+            <div id="contact-status"></div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">
+              Envoyer le message
+            </button>
+          </form>
+        </div>
+
+        <!-- COORDONNÉES OFFICIELLES DU SIÈGE -->
+        <div class="info-box">
+          <div>
+            <h3 style="color: var(--color-white); font-size: 1.35rem; margin-bottom: 0.5rem;">Siège Social</h3>
+            <p style="color: #A3D9B5; font-size: 0.85rem;">COOPEC-AD/BENIN (Godomey-Togoudo)</p>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon">📍</div>
+            <div class="info-text">
+              <h4>Adresse du Siège</h4>
+              <p>
+                Godomey-Togoudo, Maison CHATIGRE Julie, 2ème rue à droite après l'Église Évangélique des Assemblées de Dieu Temple Universitaire, en quittant le Carrefour IITA pour Tankpè.<br>
+                <strong>02 BP 408 Cotonou</strong>
+              </p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon">📞</div>
+            <div class="info-text">
+              <h4>Lignes téléphoniques</h4>
+              <p>
+                <a href="tel:94017836">94 01 78 36</a> / <a href="tel:95282081">95 28 20 81</a><br>
+                Autre ligne : <a href="tel:95719541">95 71 95 41</a>
+              </p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon">✉</div>
+            <div class="info-text">
+              <h4>Courriel officiel</h4>
+              <p><a href="mailto:coopec.adbenin@gmail.com" data-bind="institution-email">coopec.adbenin@gmail.com</a></p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon">🕒</div>
+            <div class="info-text">
+              <h4>Heures d'ouverture</h4>
+              <p>
+                Lundi à Vendredi : 08h00 – 12h30 / 14h30 – 17h30<br>
+                Fermé samedis, dimanches et fériés.
+              </p>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1rem; margin-top: auto;">
+            <a href="https://wa.me/22994017836" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="background-color: #25D366; color: white; width: 100%;">
+              💬 Échanger sur WhatsApp (+229 94 01 78 36)
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 12 AGENCES BANNER -->
+    <section class="section section-alt" style="text-align: center;">
+      <div class="container">
+        <h2 class="section-title">Besoin d'une agence de proximité ?</h2>
+        <p class="section-desc" style="max-width: 600px; margin: 0 auto 1.5rem;">
+          Retrouvez nos 12 agences réparties sur l'Atlantique, le Littoral, l'Ouémé, le Mono, le Couffo, le Zou, les Collines et le Borgou.
+        </p>
+        <a href="nos-agences.html" class="btn btn-secondary btn-lg">Consulter la carte des agences</a>
+      </div>
+    </section>
+  </main> 
+  
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-text" style="margin-bottom: 1rem;">
+            <span class="brand-name">COOPEC-AD / BENIN</span>
+            <span class="brand-sub">Coopérative d'Épargne et de Crédit des Assemblées de Dieu du Bénin</span>
+          </div>
+          <p class="footer-desc">
+            Système Financier Décentralisé (SFD) régi par la loi n°2012-14 du 21 mars 2012. Agrément BCEAO N° A.15.0105.A du 23 novembre 2016. IFU : 6201701436101.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Navigation</h4>
+          <div class="footer-links">
+            <a href="index.html">Accueil</a>
+            <a href="qui-sommes-nous.html">Qui sommes-nous ?</a>
+            <a href="nos-services.html">Nos services</a>
+            <a href="nos-credits.html">Nos crédits</a>
+            <a href="devenir-membre.html">Devenir membre</a>
+            <a href="nos-agences.html">Nos 12 agences</a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Services & Info</h4>
+          <div class="footer-links">
+            <a href="nos-services.html#epargne">Épargne sur livret (3,5%)</a>
+            <a href="nos-services.html#tontine">Épargne Tontine</a>
+            <a href="nos-credits.html">Crédits dégressifs</a>
+            <a href="nos-services.html#transfert">Transfert d'argent</a>
+            <a href="carrieres.html">Carrières & Recrutement</a>
+            <a href="actualites.html">Actualités & FAQ</a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Siège & Contacts</h4>
+          <div class="footer-links" style="font-size: 0.875rem;">
+            <p>📍 Godomey-Togoudo, Maison CHATIGRE Julie, 02 BP 408 Cotonou</p>
+            <p>📞 <a href="tel:94017836" data-bind="institution-tel">94 01 78 36 / 95 28 20 81</a></p>
+            <p>✉ <a href="mailto:coopec.adbenin@gmail.com" data-bind="institution-email">coopec.adbenin@gmail.com</a></p>
+            <p>🕒 Lun - Ven : 08h00 - 17h00</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-legal-note">
+          &copy; 2026 COOPEC-AD/BENIN. Tous droits réservés. Aucune transaction financière n'est réalisée en ligne.
+        </div>
+        <div>
+          <a href="mentions-legales.html" style="color: #C6F6D5; text-decoration: underline;">Mentions Légales & Agréments</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- BOUTON WHATSAPP FLOTTANT -->
+  <a href="https://wa.me/22994017836" id="whatsapp-btn" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Contacter la COOPEC-AD sur WhatsApp">
+    <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.8 14.16c-.24.68-1.4 1.25-1.92 1.33-.5.08-1.15.11-3.32-.78-2.77-1.15-4.56-3.96-4.7-4.15-.14-.19-1.12-1.49-1.12-2.84 0-1.35.7-2.01.95-2.29.25-.28.55-.35.73-.35.18 0 .36 0 .52.01.17.01.39-.06.61.47.23.55.78 1.9.85 2.04.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.3.36-.43.48-.14.14-.29.29-.12.58.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.41.29.14.46.12.63-.07.17-.19.73-.85.93-1.14.2-.29.4-.24.68-.14.28.1.1.78 2.33 2.08 2.55.23.12.38.18.44.27.06.09.06.52-.18 1.2z"/></svg>
+  </a>
+
+  <!-- SCRIPTS -->
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

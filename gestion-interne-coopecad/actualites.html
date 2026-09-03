@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Actualités — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link">Institution</a>
+      <a href="agences.html" class="admin-nav-link">Agences</a>
+      <a href="actualites.html" class="admin-nav-link active">Actualités</a>
+      <a href="messages.html" class="admin-nav-link">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Actualités</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
+        Cas 2b — Liste complète avec statut brouillon/publié : les 4 opérations, + image.
+      </p>
+
+      <div class="admin-panel">
+        <div id="alerte" class="admin-alerte"></div>
+        <h3 id="titre-formulaire" style="color: var(--color-green-dark); margin-bottom: 1rem;">Ajouter une actualité</h3>
+
+        <form id="form-actualite" enctype="multipart/form-data">
+          <input type="hidden" id="actualite-id">
+          <input type="hidden" id="methode-forcee">
+          <div class="simulator-form-grid">
+            <div>
+              <div class="form-group">
+                <label for="titre">Titre</label>
+                <input type="text" id="titre" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="date_publication">Date de publication</label>
+                <input type="date" id="date_publication" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="categorie">Catégorie</label>
+                <input type="text" id="categorie" class="form-control" placeholder="Ex : Offre Spéciale, Réseau">
+              </div>
+              <div class="form-group">
+                <label for="statut">Statut</label>
+                <select id="statut" class="form-control">
+                  <option value="brouillon">Brouillon (invisible du public)</option>
+                  <option value="publie">Publié</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label for="resume">Résumé court</label>
+                <textarea id="resume" class="form-control" rows="2" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="texte_complet">Texte complet</label>
+                <textarea id="texte_complet" class="form-control" rows="4" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="image">Image (jpg, png ou webp, 2 Mo max)</label>
+                <input type="file" id="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button type="submit" class="btn btn-primary" id="btn-submit-actualite">Ajouter</button>
+            <button type="button" class="btn btn-secondary" id="btn-annuler" style="display:none;">Annuler la modification</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-panel">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr><th>Titre</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="corps-tableau-actualites"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const alerte = document.getElementById('alerte');
+    const form = document.getElementById('form-actualite');
+    const corpsTableau = document.getElementById('corps-tableau-actualites');
+    const btnSubmit = document.getElementById('btn-submit-actualite');
+    const btnAnnuler = document.getElementById('btn-annuler');
+    const titreFormulaire = document.getElementById('titre-formulaire');
+
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    function reinitialiserFormulaire() {
+      form.reset();
+      document.getElementById('actualite-id').value = '';
+      document.getElementById('methode-forcee').value = '';
+      btnSubmit.textContent = 'Ajouter';
+      titreFormulaire.textContent = 'Ajouter une actualité';
+      btnAnnuler.style.display = 'none';
+    }
+
+    async function chargerActualites() {
+      try {
+        const liste = await appelAdmin('../api/admin/actualites.php');
+        corpsTableau.innerHTML = liste.map((a) => `
+          <tr>
+            <td>${a.titre}</td>
+            <td>${a.date_publication}</td>
+            <td><span class="admin-badge-statut ${a.statut}">${a.statut}</span></td>
+            <td class="admin-table-actions">
+              <button class="btn btn-sm btn-secondary" onclick='remplirFormulaire(${JSON.stringify(a)})'>Modifier</button>
+              <button class="btn btn-sm btn-red" onclick="supprimerActualite(${a.id}, '${a.titre.replace(/'/g, "\\'")}')">Supprimer</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    function remplirFormulaire(a) {
+      document.getElementById('actualite-id').value = a.id;
+      document.getElementById('methode-forcee').value = 'PUT';
+      document.getElementById('titre').value = a.titre;
+      document.getElementById('date_publication').value = a.date_publication;
+      document.getElementById('categorie').value = a.categorie || '';
+      document.getElementById('statut').value = a.statut;
+      document.getElementById('resume').value = a.resume;
+      document.getElementById('texte_complet').value = a.texte_complet;
+      btnSubmit.textContent = 'Enregistrer les modifications';
+      titreFormulaire.textContent = `Modifier : ${a.titre}`;
+      btnAnnuler.style.display = 'inline-flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function supprimerActualite(id, titre) {
+      if (!confirm(`Supprimer définitivement l'actualité "${titre}" ?`)) return;
+      try {
+        await appelAdmin(`../api/admin/actualites.php?id=${id}`, { method: 'DELETE' });
+        chargerActualites();
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    btnAnnuler.addEventListener('click', reinitialiserFormulaire);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masquerAlerte(alerte);
+
+      const id = document.getElementById('actualite-id').value;
+      const donneesForm = new FormData();
+      donneesForm.append('titre', document.getElementById('titre').value);
+      donneesForm.append('date_publication', document.getElementById('date_publication').value);
+      donneesForm.append('categorie', document.getElementById('categorie').value);
+      donneesForm.append('statut', document.getElementById('statut').value);
+      donneesForm.append('resume', document.getElementById('resume').value);
+      donneesForm.append('texte_complet', document.getElementById('texte_complet').value);
+      const fichierImage = document.getElementById('image').files[0];
+      if (fichierImage) donneesForm.append('image', fichierImage);
+
+      try {
+        if (id) {
+          // Note technique (voir api/admin/actualites.php) : PUT + fichier ne fonctionne pas
+          // nativement en PHP, on envoie donc un POST avec _method=PUT, normalisé côté serveur.
+          donneesForm.append('_method', 'PUT');
+          await appelAdmin(`../api/admin/actualites.php?id=${id}`, { method: 'POST', body: donneesForm });
+          afficherAlerte(alerte, 'Actualité mise à jour.', 'succes');
+        } else {
+          await appelAdmin('../api/admin/actualites.php', { method: 'POST', body: donneesForm });
+          afficherAlerte(alerte, 'Actualité créée.', 'succes');
+        }
+        reinitialiserFormulaire();
+        chargerActualites();
+      } catch (err) {
+        const detail = err.champs && Object.values(err.champs)[0];
+        afficherAlerte(alerte, detail || err.message, 'erreur');
+      }
+    });
+
+    chargerActualites();
+  </script>
+</body>
+</html>
