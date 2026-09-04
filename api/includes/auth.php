@@ -14,7 +14,20 @@ session_set_cookie_params([
 session_start();
 
 function estConnecteAdmin(): bool {
-    return !empty($_SESSION['admin_id']);
+    if (empty($_SESSION['admin_id'])) {
+        return false;
+    }
+
+    $limiteInactivite = 30 * 60; // 30 minutes, en secondes
+
+    if (isset($_SESSION['derniere_activite']) && (time() - $_SESSION['derniere_activite']) > $limiteInactivite) {
+        session_unset();
+        session_destroy();
+        return false;
+    }
+
+    $_SESSION['derniere_activite'] = time();
+    return true;
 }
 
 function exigerAdmin(): void {
