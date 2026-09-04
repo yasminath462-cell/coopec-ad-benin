@@ -13,10 +13,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initNavigation();
   injectDynamicData();
+  chargerInstitutionDepuisAPI();
   initFAQ();
   initContactForm();
   initWhatsAppButton();
 });
+
+/**
+ * 1bis. Va chercher les vraies données institution dans la base (via l'API publique),
+ * et les injecte à la place des valeurs figées de COOPEC_DATA une fois reçues.
+ * Si l'API échoue (site hors ligne, etc.), les valeurs de data.js restent affichées
+ * (comportement de secours, rien ne casse).
+ */
+async function chargerInstitutionDepuisAPI() {
+  try {
+    const reponse = await fetch('/api/public/institution.php');
+    if (!reponse.ok) return;
+    const inst = await reponse.json();
+
+    document.querySelectorAll('[data-bind="institution-tel"]').forEach(el => {
+      el.textContent = inst.telephone_principal;
+    });
+
+    document.querySelectorAll('[data-bind="institution-email"]').forEach(el => {
+      el.textContent = inst.email;
+      if (el.tagName === 'A') el.href = `mailto:${inst.email}`;
+    });
+
+    document.querySelectorAll('[data-bind="agrement-bceao"]').forEach(el => {
+      el.textContent = inst.agrement_bceao;
+    });
+
+    document.querySelectorAll('[data-bind="ifu"]').forEach(el => {
+      el.textContent = inst.ifu;
+    });
+
+    document.querySelectorAll('[data-bind="membres-count"]').forEach(el => {
+      el.textContent = `+${Number(inst.membres_count).toLocaleString('fr-FR')}`;
+    });
+
+    document.querySelectorAll('[data-bind="horaires"]').forEach(el => {
+      el.textContent = inst.horaires_texte;
+    });
+
+    document.querySelectorAll('[data-bind="vision"]').forEach(el => {
+      el.textContent = inst.vision;
+    });
+
+    document.querySelectorAll('[data-bind="mission"]').forEach(el => {
+      el.textContent = inst.mission;
+    });
+  } catch (e) {
+    console.warn('[main.js] API institution injoignable, valeurs de secours (data.js) conservées.', e);
+  }
+}
 
 /**
  * 2. Gestion du menu de navigation responsive
