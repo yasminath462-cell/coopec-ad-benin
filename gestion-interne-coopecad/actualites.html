@@ -129,7 +129,7 @@
             <td>${a.date_publication}</td>
             <td><span class="admin-badge-statut ${a.statut}">${a.statut}</span></td>
             <td class="admin-table-actions">
-              <button class="btn btn-sm btn-secondary" onclick='remplirFormulaire(${JSON.stringify(a)})'>Modifier</button>
+              <button class="btn btn-sm btn-secondary" onclick='remplirFormulaire(${JSON.stringify(a).replace(/'/g, "&#39;")})'>Modifier</button>
               <button class="btn btn-sm btn-red" onclick="supprimerActualite(${a.id}, '${a.titre.replace(/'/g, "\\'")}')">Supprimer</button>
             </td>
           </tr>
