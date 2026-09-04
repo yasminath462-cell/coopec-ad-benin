@@ -84,40 +84,8 @@
           <p class="section-desc">Suivez les annonces et événements majeurs de la COOPEC-AD/BENIN.</p>
         </div>
 
-        <div class="grid-2" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: stretch;">
-          
-          <!-- ARTICLE 1 -->
-          <div class="card-item" style="border-top: 4px solid var(--color-green); display: flex; flex-direction: column;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-green); margin-bottom: 0.5rem;">
-              📅 Août 2026 • Offre Spéciale
-            </div>
-            <h3 style="color: var(--color-green-dark); font-size: 1.25rem; margin-bottom: 0.75rem;">
-              Promotion du Crédit Scolaire pour la rentrée académique
-            </h3>
-            <p style="font-size: 0.95rem; color: var(--color-text-light); line-height: 1.5; margin-bottom: 1.25rem; flex-grow: 1;">
-              La COOPEC-AD/BENIN met à disposition de ses membres le crédit scolaire spécialement conçu pour alléger les charges de rentrée : inscription, fournitures et uniformes. Profitez d'un taux dégressif préférentiel de 1,5 % par mois.
-            </p>
-            <div style="border-top: 1px solid var(--color-border); padding-top: 0.75rem;">
-              <a href="nos-credits.html" class="service-link">Découvrir le crédit scolaire →</a>
-            </div>
-          </div>
-
-          <!-- ARTICLE 2 -->
-          <div class="card-item" style="border-top: 4px solid var(--color-red); display: flex; flex-direction: column;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-red); margin-bottom: 0.5rem;">
-              📅 Juillet 2026 • Réseau
-            </div>
-            <h3 style="color: var(--color-green-dark); font-size: 1.25rem; margin-bottom: 0.75rem;">
-              Extension des services de transfert d'argent dans tout le réseau
-            </h3>
-            <p style="font-size: 0.95rem; color: var(--color-text-light); line-height: 1.5; margin-bottom: 1.25rem; flex-grow: 1;">
-              Pour faciliter vos transferts nationaux et internationaux, nos 12 agences disposent désormais de guichets dédiés pour les 5 grands opérateurs : MTN MoMo, MOOV Money, Western Union, Ria et MoneyGram.
-            </p>
-            <div style="border-top: 1px solid var(--color-border); padding-top: 0.75rem;">
-              <a href="nos-services.html#transfert" class="service-link" style="color: var(--color-red);">En savoir plus sur les transferts →</a>
-            </div>
-          </div>
-
+        <div id="actualites-liste" class="grid-2" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: stretch;">
+          <p style="color: var(--color-muted);">Chargement des actualités…</p>
         </div>
       </div>
     </section>
@@ -188,7 +156,7 @@
             <p>📍 Godomey-Togoudo, Maison CHATIGRE Julie, 02 BP 408 Cotonou</p>
             <p>📞 <a href="tel:94017836" data-bind="institution-tel">94 01 78 36 / 95 28 20 81</a></p>
             <p>✉ <a href="mailto:coopec.adbenin@gmail.com" data-bind="institution-email">coopec.adbenin@gmail.com</a></p>
-            <p>🕒 Lun - Ven : 08h00 - 17h00</p>
+            <p>🕒 <span data-bind="horaires">Lun - Ven : 08h00 - 17h00</span></p>
           </div>
         </div>
       </div>

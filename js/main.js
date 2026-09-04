@@ -14,10 +14,67 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   injectDynamicData();
   chargerInstitutionDepuisAPI();
+  chargerActualitesDepuisAPI();
   initFAQ();
   initContactForm();
   initWhatsAppButton();
 });
+
+/**
+ * 1ter. Va chercher les actualités publiées dans la base (via l'API publique),
+ * et les affiche dans #actualites-liste si ce conteneur existe sur la page
+ * (seule actualites.html en a un — les autres pages ignorent silencieusement).
+ */
+async function chargerActualitesDepuisAPI() {
+  const conteneur = document.getElementById('actualites-liste');
+  if (!conteneur) return;
+
+  try {
+    const reponse = await fetch('/api/public/actualites.php');
+    if (!reponse.ok) throw new Error('Réponse API invalide');
+    const actualites = await reponse.json();
+
+    if (!actualites.length) {
+      conteneur.innerHTML = '<p style="color: var(--color-muted);">Aucune actualité publiée pour le moment.</p>';
+      return;
+    }
+
+    const moisFr = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+    conteneur.innerHTML = actualites.map(a => {
+      const d = new Date(a.date_publication);
+      const dateLisible = `${moisFr[d.getMonth()]} ${d.getFullYear()}`;
+      const categorie = a.categorie ? ` • ${escapeHtml(a.categorie)}` : '';
+      return `
+        <div class="card-item" style="border-top: 4px solid var(--color-green); display: flex; flex-direction: column;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-green); margin-bottom: 0.5rem;">
+            📅 ${dateLisible}${categorie}
+          </div>
+          <h3 style="color: var(--color-green-dark); font-size: 1.25rem; margin-bottom: 0.75rem;">
+            ${escapeHtml(a.titre)}
+          </h3>
+          <p style="font-size: 0.95rem; color: var(--color-text-light); line-height: 1.5; margin-bottom: 1.25rem; flex-grow: 1;">
+            ${escapeHtml(a.resume)}
+          </p>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    conteneur.innerHTML = '<p style="color: var(--color-muted);">Actualités momentanément indisponibles.</p>';
+    console.warn('[main.js] API actualités injoignable.', e);
+  }
+}
+
+/**
+ * Échappe le HTML pour éviter toute injection de code depuis un texte
+ * saisi dans le dashboard (sécurité de base, jamais faire confiance
+ * aveuglément à du texte venant de la base de données).
+ */
+function escapeHtml(texte) {
+  const div = document.createElement('div');
+  div.textContent = texte ?? '';
+  return div.innerHTML;
+}
 
 /**
  * 1bis. Va chercher les vraies données institution dans la base (via l'API publique),
