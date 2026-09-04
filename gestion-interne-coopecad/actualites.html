@@ -39,7 +39,8 @@
             <div>
               <div class="form-group">
                 <label for="titre">Titre</label>
-                <input type="text" id="titre" class="form-control" required>
+                <input type="text" id="titre" class="form-control" maxlength="255" required>
+                <small id="compteur-titre" class="admin-compteur"></small>
               </div>
               <div class="form-group">
                 <label for="date_publication">Date de publication</label>
@@ -47,7 +48,8 @@
               </div>
               <div class="form-group">
                 <label for="categorie">Catégorie</label>
-                <input type="text" id="categorie" class="form-control" placeholder="Ex : Offre Spéciale, Réseau">
+                <input type="text" id="categorie" class="form-control" maxlength="50" placeholder="Ex : Offre Spéciale, Réseau">
+                <small id="compteur-categorie" class="admin-compteur"></small>
               </div>
               <div class="form-group">
                 <label for="statut">Statut</label>
@@ -60,11 +62,13 @@
             <div>
               <div class="form-group">
                 <label for="resume">Résumé court</label>
-                <textarea id="resume" class="form-control" rows="2" required></textarea>
+                <textarea id="resume" class="form-control" rows="2" maxlength="500" required></textarea>
+                <small id="compteur-resume" class="admin-compteur"></small>
               </div>
               <div class="form-group">
                 <label for="texte_complet">Texte complet</label>
-                <textarea id="texte_complet" class="form-control" rows="4" required></textarea>
+                <textarea id="texte_complet" class="form-control" rows="4" maxlength="5000" required></textarea>
+                <small id="compteur-texte_complet" class="admin-compteur"></small>
               </div>
               <div class="form-group">
                 <label for="image">Image (jpg, png ou webp, 2 Mo max)</label>
@@ -195,6 +199,40 @@
         afficherAlerte(alerte, detail || err.message, 'erreur');
       }
     });
+
+    /**
+     * Compteurs de caractères en temps réel : pour chaque champ limité,
+     * on affiche "X / max caractères", en vert si c'est bon, en rouge
+     * si on approche ou dépasse la limite (rare, maxlength bloque déjà
+     * la saisie, mais on confirme visuellement dans tous les cas).
+     */
+    function initCompteur(idChamp) {
+      const champ = document.getElementById(idChamp);
+      const compteur = document.getElementById(`compteur-${idChamp}`);
+      if (!champ || !compteur) return;
+
+      const max = Number(champ.getAttribute('maxlength'));
+
+      function majCompteur() {
+        const longueur = champ.value.length;
+        const restant = max - longueur;
+        if (restant < 0) {
+          compteur.textContent = `⚠ ${longueur} / ${max} — dépasse de ${-restant} caractère(s)`;
+          compteur.style.color = 'var(--color-red, #c0392b)';
+        } else if (restant <= 20) {
+          compteur.textContent = `${longueur} / ${max} caractères — presque plein`;
+          compteur.style.color = '#b8860b';
+        } else {
+          compteur.textContent = `${longueur} / ${max} caractères`;
+          compteur.style.color = 'var(--color-muted, #666)';
+        }
+      }
+
+      champ.addEventListener('input', majCompteur);
+      majCompteur();
+    }
+
+    ['titre', 'categorie', 'resume', 'texte_complet'].forEach(initCompteur);
 
     chargerActualites();
   </script>
