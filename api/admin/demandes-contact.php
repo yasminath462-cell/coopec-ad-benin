@@ -26,6 +26,14 @@ switch ($methode) {
         repondreJson(['message' => 'Message marqué comme lu.']);
         break;
 
+    case 'DELETE':
+        if (!$id) erreurJson('Identifiant manquant.', 400);
+        $stmt = $pdo->prepare('DELETE FROM demandes_contact WHERE id = ?');
+        $stmt->execute([$id]);
+        if ($stmt->rowCount() === 0) erreurJson('Message introuvable.', 404);
+        repondreJson(['message' => 'Message supprimé.']);
+        break;
+
     default:
         erreurJson('Méthode non autorisée.', 405);
 }

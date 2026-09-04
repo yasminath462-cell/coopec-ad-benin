@@ -36,3 +36,33 @@ function afficherAlerte(element, message, type = 'erreur') {
 function masquerAlerte(element) {
   element.className = 'admin-alerte';
 }
+
+/**
+ * Badge "messages non lus" sur le lien "Messages reçus" du menu — visible
+ * sur toutes les pages du dashboard (sauf login.html, qui n'a pas de menu).
+ * Permet de savoir qu'un nouveau message est arrivé sans devoir ouvrir la page.
+ */
+async function majBadgeMessages() {
+  const lien = document.querySelector('a[href="messages.html"].admin-nav-link');
+  if (!lien) return;
+
+  try {
+    const messages = await appelAdmin('../api/admin/demandes-contact.php');
+    const nonLus = messages.filter(m => !m.lu).length;
+
+    const badgeExistant = lien.querySelector('.admin-badge-compteur');
+    if (badgeExistant) badgeExistant.remove();
+
+    if (nonLus > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'admin-badge-compteur';
+      badge.textContent = nonLus;
+      badge.style.cssText = 'background: var(--color-red, #c0392b); color: #fff; border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.75rem; margin-left: 0.5rem; font-weight: 700;';
+      lien.appendChild(badge);
+    }
+  } catch (e) {
+    // Silencieux : une session pas encore vérifiée ne doit pas casser la page.
+  }
+}
+
+document.addEventListener('DOMContentLoaded', majBadgeMessages);

@@ -61,7 +61,10 @@
                 ${!m.lu ? '<span class="admin-badge-non-lu">Non lu</span>' : ''}
                 <div style="font-size:0.85rem; color:var(--color-muted);">${m.telephone} — ${m.date_envoi}</div>
               </div>
-              ${!m.lu ? `<button class="btn btn-sm btn-secondary" onclick="marquerLu(${m.id})">Marquer comme lu</button>` : ''}
+              <div style="display:flex; gap:0.5rem;">
+                ${!m.lu ? `<button class="btn btn-sm btn-secondary" onclick="marquerLu(${m.id})">Marquer comme lu</button>` : ''}
+                <button class="btn btn-sm btn-red" onclick="supprimerMessage(${m.id}, '${m.nom.replace(/'/g, "&#39;")}')">Supprimer</button>
+              </div>
             </div>
             <p style="font-size:0.925rem; color:var(--color-text-light);">${m.message}</p>
           </div>
@@ -75,6 +78,18 @@
       try {
         await appelAdmin(`../api/admin/demandes-contact.php?id=${id}`, { method: 'PATCH' });
         chargerMessages();
+        majBadgeMessages();
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    async function supprimerMessage(id, nom) {
+      if (!confirm(`Supprimer définitivement le message de "${nom}" ?`)) return;
+      try {
+        await appelAdmin(`../api/admin/demandes-contact.php?id=${id}`, { method: 'DELETE' });
+        chargerMessages();
+        majBadgeMessages();
       } catch (err) {
         afficherAlerte(alerte, err.message, 'erreur');
       }
