@@ -45,8 +45,12 @@ async function chargerActualitesDepuisAPI() {
       const d = new Date(a.date_publication);
       const dateLisible = `${moisFr[d.getMonth()]} ${d.getFullYear()}`;
       const categorie = a.categorie ? ` • ${escapeHtml(a.categorie)}` : '';
+      const image = a.image
+        ? `<img src="${escapeHtml(a.image)}" alt="${escapeHtml(a.titre)}" style="width:100%; height:180px; object-fit:cover; border-radius:8px; margin-bottom:1rem;">`
+        : '';
       return `
         <div class="card-item" style="border-top: 4px solid var(--color-green); display: flex; flex-direction: column;">
+          ${image}
           <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-green); margin-bottom: 0.5rem;">
             📅 ${dateLisible}${categorie}
           </div>
