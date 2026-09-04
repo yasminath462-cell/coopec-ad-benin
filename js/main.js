@@ -291,22 +291,37 @@ function initContactForm() {
       return;
     }
 
-    // Succès
-    const emailDest = COOPEC_DATA.institution.email;
-    statusBox.innerHTML = `
-      <div class="simulator-disclaimer" style="background-color: var(--color-green-light); border-color: var(--color-green); color: var(--color-green-dark);">
-        ✓ Merci ${escapeHtml(nomInput.value.trim())} ! Votre message a été préparé pour le service clientèle (${emailDest}).<br>
-        Vous pouvez également nous joindre directement au <strong>${COOPEC_DATA.institution.telephones[0]}</strong>.
-      </div>
-    `;
+    // Envoi réel vers l'API (enregistrement en base + notification email au service)
+    statusBox.innerHTML = `<div class="simulator-disclaimer">Envoi en cours…</div>`;
 
-    // Redirection propre via mailto (sans stockage serveur)
-    const subject = encodeURIComponent(`Contact Site Web — ${nomInput.value.trim()}`);
-    const body = encodeURIComponent(`Nom : ${nomInput.value.trim()}\nTéléphone : ${telInput.value.trim()}\n\nMessage :\n${msgInput.value.trim()}`);
-    
-    // Déclenchement de l'envoi client
-    window.location.href = `mailto:${emailDest}?subject=${subject}&body=${body}`;
-    form.reset();
+    fetch('/api/public/contact.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nom: nomInput.value.trim(),
+        telephone: telInput.value.trim(),
+        message: msgInput.value.trim(),
+      }),
+    })
+      .then(async (reponse) => {
+        const data = await reponse.json().catch(() => ({}));
+        if (!reponse.ok) throw new Error(data.erreur || 'Échec de l\'envoi.');
+
+        statusBox.innerHTML = `
+          <div class="simulator-disclaimer" style="background-color: var(--color-green-light); border-color: var(--color-green); color: var(--color-green-dark);">
+            ✓ Merci ${escapeHtml(nomInput.value.trim())} ! Votre message a bien été transmis à notre service clientèle.<br>
+            Vous pouvez également nous joindre directement au <strong>${COOPEC_DATA.institution.telephones[0]}</strong>.
+          </div>
+        `;
+        form.reset();
+      })
+      .catch((err) => {
+        statusBox.innerHTML = `
+          <div class="simulator-disclaimer" style="background-color: var(--color-red-light); border-color: var(--color-red); color: var(--color-red);">
+            ⚠ ${escapeHtml(err.message)} Vous pouvez aussi nous appeler directement au <strong>${COOPEC_DATA.institution.telephones[0]}</strong>.
+          </div>
+        `;
+      });
   });
 }
 

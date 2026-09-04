@@ -57,6 +57,6 @@ $stmt->execute([$nom, $telephone, $message, $ip]);
 $sujet = 'Nouveau message via le site — ' . $nom;
 $corps = "Nom : $nom\nTéléphone : $telephone\n\nMessage :\n$message";
 $entetes = "From: no-reply@coopecadbenin.bj\r\nReply-To: no-reply@coopecadbenin.bj";
-@mail('coopec.adbenin@gmail.com', $sujet, $corps, $entetes);
+@mail('snoe4057@gmail.com', $sujet, $corps, $entetes);
 
 repondreJson(['message' => 'Message envoyé, merci.'], 201);
