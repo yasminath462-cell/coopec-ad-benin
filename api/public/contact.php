@@ -8,7 +8,7 @@ require __DIR__ . '/../config/db.php';
 require __DIR__ . '/../includes/response.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    erreurJson('DIAGNOSTIC — méthode reçue : [' . ($_SERVER['REQUEST_METHOD'] ?? 'VIDE') . ']', 405);
+    erreurJson('Méthode non autorisée.', 405);
 }
 
 $d = json_decode(file_get_contents('php://input'), true) ?? [];
