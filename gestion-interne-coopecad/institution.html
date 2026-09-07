@@ -47,6 +47,11 @@
                 <input type="email" id="email" class="form-control">
               </div>
               <div class="form-group">
+                <label for="email_notifications">Email de notification (messages de contact)</label>
+                <input type="email" id="email_notifications" class="form-control" placeholder="Adresse recevant une alerte a chaque nouveau message">
+                <small style="color:var(--color-muted); font-size:0.8rem;">Distinct de l'email officiel ci-dessus — utilise uniquement pour vous avertir des nouveaux messages recus via le formulaire de contact.</small>
+              </div>
+              <div class="form-group">
                 <label for="membres_count">Nombre de membres</label>
                 <input type="number" id="membres_count" class="form-control" min="0">
               </div>
@@ -76,7 +81,7 @@
   <script>
     const alerte = document.getElementById('alerte');
     const form = document.getElementById('form-institution');
-    const champs = ['nom_court', 'telephone_principal', 'email', 'membres_count', 'horaires_texte', 'vision', 'mission'];
+    const champs = ['nom_court', 'telephone_principal', 'email', 'email_notifications', 'membres_count', 'horaires_texte', 'vision', 'mission'];
 
     document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
       e.preventDefault();

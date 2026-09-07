@@ -18,12 +18,15 @@ $d = json_decode(file_get_contents('php://input'), true) ?? [];
 $champsAutorises = [
     'nom_court', 'raison_sociale', 'statut_juridique', 'agrement_bceao', 'ifu',
     'siege_social', 'telephone_principal', 'telephone_whatsapp', 'email', 'site_web',
-    'horaires_texte', 'membres_count', 'vision', 'mission',
+    'horaires_texte', 'membres_count', 'vision', 'mission', 'email_notifications',
 ];
 
 $erreurs = [];
 if (isset($d['email']) && !filter_var($d['email'], FILTER_VALIDATE_EMAIL)) {
     $erreurs['email'] = 'Adresse email invalide.';
+}
+if (isset($d['email_notifications']) && trim((string)$d['email_notifications']) !== '' && !filter_var($d['email_notifications'], FILTER_VALIDATE_EMAIL)) {
+    $erreurs['email_notifications'] = 'Adresse email de notification invalide.';
 }
 if (isset($d['membres_count']) && (!is_numeric($d['membres_count']) || $d['membres_count'] < 0)) {
     $erreurs['membres_count'] = 'Le nombre de membres doit être un entier positif.';

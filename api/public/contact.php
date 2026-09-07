@@ -52,11 +52,16 @@ if (!empty($erreurs)) {
 $stmt = $pdo->prepare('INSERT INTO demandes_contact (nom, telephone, message, ip) VALUES (?, ?, ?, ?)');
 $stmt->execute([$nom, $telephone, $message, $ip]);
 
-// Envoi d'email au service clientèle — voir la note de fiabilité de mail() sur hébergement
-// mutualisé transmise en résumé du chantier (préférer un envoi SMTP authentifié si possible).
+// Envoi d'email au service clientèle — l'adresse est lue depuis la base (modifiable
+// depuis le tableau de bord, section Institution), avec une valeur de repli si absente.
+// Voir la note de fiabilité de mail() sur hébergement mutualisé — préférer un envoi
+// SMTP authentifié si possible.
+$stmtEmail = $pdo->query('SELECT email_notifications FROM institution WHERE id = 1');
+$emailNotif = $stmtEmail->fetchColumn() ?: 'coopec.adbenin@gmail.com';
+
 $sujet = 'Nouveau message via le site — ' . $nom;
 $corps = "Nom : $nom\nTéléphone : $telephone\n\nMessage :\n$message";
 $entetes = "From: no-reply@coopecadbenin.bj\r\nReply-To: no-reply@coopecadbenin.bj";
-@mail('snoe4057@gmail.com', $sujet, $corps, $entetes);
+@mail($emailNotif, $sujet, $corps, $entetes);
 
 repondreJson(['message' => 'Message envoyé, merci.'], 201);
