@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Types de crédit — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link">Institution</a>
+      <a href="agences.html" class="admin-nav-link">Agences</a>
+      <a href="actualites.html" class="admin-nav-link">Actualités</a>
+      <a href="operateurs.html" class="admin-nav-link">Opérateurs de transfert</a>
+      <a href="produits-epargne.html" class="admin-nav-link">Produits d'épargne</a>
+      <a href="types-credit.html" class="admin-nav-link active">Types de crédit</a>
+      <a href="messages.html" class="admin-nav-link">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Types de crédit</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
+        Gestion des formules de crédit affichées sur la page Nos crédits.
+      </p>
+
+      <div class="admin-panel">
+        <div id="alerte" class="admin-alerte"></div>
+        <h3 id="titre-formulaire" style="color: var(--color-green-dark); margin-bottom: 1rem;">Ajouter un type de crédit</h3>
+
+        <form id="form-credit">
+          <input type="hidden" id="credit-id">
+          <div class="simulator-form-grid">
+            <div>
+              <div class="form-group">
+                <label for="code">Code (ex : AGRI, SCOLAIRE)</label>
+                <input type="text" id="code" class="form-control" maxlength="30" required>
+              </div>
+              <div class="form-group">
+                <label for="nom">Nom complet</label>
+                <input type="text" id="nom" class="form-control" maxlength="150" placeholder="Ex : Crédit scolaire" required>
+              </div>
+              <div class="form-group">
+                <label for="cible">Cible</label>
+                <textarea id="cible" class="form-control" rows="2" placeholder="Ex : Parents d'élèves, tuteurs et étudiants." required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="ordre">Ordre d'affichage</label>
+                <input type="number" id="ordre" class="form-control" min="0" value="0">
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label for="utilisation">Usage</label>
+                <textarea id="utilisation" class="form-control" rows="3" placeholder="Ex : Paiement des frais de scolarité, fournitures..." required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="duree">Durée</label>
+                <input type="text" id="duree" class="form-control" placeholder="Ex : Jusqu'à 12 mois" required>
+              </div>
+              <div class="form-group">
+                <label for="taux_specifique">Taux mensuel spécifique (décimal, ex : 0.015)</label>
+                <input type="number" id="taux_specifique" class="form-control" step="0.0001" min="0" placeholder="Laisser vide pour utiliser le taux standard 1,5% - 1,75%">
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button type="submit" class="btn btn-primary" id="btn-submit-credit">Ajouter</button>
+            <button type="button" class="btn btn-secondary" id="btn-annuler" style="display:none;">Annuler la modification</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-panel">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr><th>Code</th><th>Nom</th><th>Durée</th><th>Ordre</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="corps-tableau-credits"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const alerte = document.getElementById('alerte');
+    const form = document.getElementById('form-credit');
+    const corpsTableau = document.getElementById('corps-tableau-credits');
+    const btnSubmit = document.getElementById('btn-submit-credit');
+    const btnAnnuler = document.getElementById('btn-annuler');
+    const titreFormulaire = document.getElementById('titre-formulaire');
+
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    function reinitialiserFormulaire() {
+      form.reset();
+      document.getElementById('credit-id').value = '';
+      btnSubmit.textContent = 'Ajouter';
+      titreFormulaire.textContent = 'Ajouter un type de crédit';
+      btnAnnuler.style.display = 'none';
+    }
+
+    async function chargerCredits() {
+      try {
+        const liste = await appelAdmin('../api/admin/types-credit.php');
+        corpsTableau.innerHTML = liste.map((c) => `
+          <tr>
+            <td>${c.code}</td>
+            <td>${c.nom}</td>
+            <td>${c.duree}</td>
+            <td>${c.ordre}</td>
+            <td class="admin-table-actions">
+              <button class="btn btn-sm btn-secondary" onclick='remplirFormulaire(${JSON.stringify(c).replace(/'/g, "&#39;")})'>Modifier</button>
+              <button class="btn btn-sm btn-red" onclick="supprimerCredit(${c.id}, '${c.nom.replace(/'/g, "&#39;")}')">Supprimer</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    function remplirFormulaire(c) {
+      document.getElementById('credit-id').value = c.id;
+      document.getElementById('code').value = c.code;
+      document.getElementById('nom').value = c.nom;
+      document.getElementById('cible').value = c.cible;
+      document.getElementById('utilisation').value = c.utilisation;
+      document.getElementById('duree').value = c.duree;
+      document.getElementById('taux_specifique').value = c.taux_specifique ?? '';
+      document.getElementById('ordre').value = c.ordre;
+      btnSubmit.textContent = 'Enregistrer les modifications';
+      titreFormulaire.textContent = `Modifier : ${c.nom}`;
+      btnAnnuler.style.display = 'inline-flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function supprimerCredit(id, nom) {
+      if (!confirm(`Supprimer définitivement le type de crédit "${nom}" ?`)) return;
+      try {
+        await appelAdmin(`../api/admin/types-credit.php?id=${id}`, { method: 'DELETE' });
+        chargerCredits();
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    btnAnnuler.addEventListener('click', reinitialiserFormulaire);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masquerAlerte(alerte);
+
+      const id = document.getElementById('credit-id').value;
+      const corps = {
+        code: document.getElementById('code').value,
+        nom: document.getElementById('nom').value,
+        cible: document.getElementById('cible').value,
+        utilisation: document.getElementById('utilisation').value,
+        duree: document.getElementById('duree').value,
+        taux_specifique: document.getElementById('taux_specifique').value,
+        ordre: document.getElementById('ordre').value,
+      };
+
+      try {
+        if (id) {
+          await appelAdmin(`../api/admin/types-credit.php?id=${id}`, { method: 'PUT', body: JSON.stringify(corps) });
+          afficherAlerte(alerte, 'Type de crédit mis à jour.', 'succes');
+        } else {
+          await appelAdmin('../api/admin/types-credit.php', { method: 'POST', body: JSON.stringify(corps) });
+          afficherAlerte(alerte, 'Type de crédit créé.', 'succes');
+        }
+        reinitialiserFormulaire();
+        chargerCredits();
+      } catch (err) {
+        const detail = err.champs && Object.values(err.champs)[0];
+        afficherAlerte(alerte, detail || err.message, 'erreur');
+      }
+    });
+
+    chargerCredits();
+  </script>
+</body>
+</html>

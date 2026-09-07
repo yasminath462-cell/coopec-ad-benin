@@ -18,10 +18,47 @@ document.addEventListener('DOMContentLoaded', () => {
   chargerOperateursDepuisAPI();
   chargerNombreAgencesDepuisAPI();
   chargerProduitsEpargneDepuisAPI();
+  chargerTypesCreditDepuisAPI();
   initFAQ();
   initContactForm();
   initWhatsAppButton();
 });
+
+/**
+ * 1septies. Va chercher les types de crédit dans la base (via l'API
+ * publique), et les affiche dans #types-credit-liste si ce conteneur
+ * existe sur la page (seule nos-credits.html en a un).
+ */
+async function chargerTypesCreditDepuisAPI() {
+  const conteneur = document.getElementById('types-credit-liste');
+  if (!conteneur) return;
+
+  try {
+    const reponse = await fetch('/api/public/types-credit.php');
+    if (!reponse.ok) throw new Error('Réponse API invalide');
+    const credits = await reponse.json();
+
+    if (!credits.length) {
+      conteneur.innerHTML = '<p style="color: var(--color-muted); grid-column: 1/-1;">Aucune formule de crédit renseignée pour le moment.</p>';
+      return;
+    }
+
+    conteneur.innerHTML = credits.map((c, index) => `
+      <div class="card-item" style="border-top: 4px solid var(--color-green);">
+        <h3 style="color: var(--color-green-dark); font-size: 1.2rem; margin-bottom: 0.75rem;">${index + 1}. ${escapeHtml(c.nom)}</h3>
+        <p style="font-size: 0.9rem; color: var(--color-text-light); margin-bottom: 0.75rem;">
+          <strong>Cible :</strong> ${escapeHtml(c.cible)}
+        </p>
+        <p style="font-size: 0.9rem; color: var(--color-muted);">
+          <strong>Usage :</strong> ${escapeHtml(c.utilisation)}
+        </p>
+      </div>
+    `).join('');
+  } catch (e) {
+    conteneur.innerHTML = '<p style="color: var(--color-muted); grid-column: 1/-1;">Formules de crédit momentanément indisponibles.</p>';
+    console.warn('[main.js] API types de crédit injoignable.', e);
+  }
+}
 
 /**
  * 1sexies. Va chercher les produits d'épargne dans la base (via l'API
