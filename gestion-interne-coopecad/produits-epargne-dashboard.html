@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Produits d'épargne — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link">Institution</a>
+      <a href="agences.html" class="admin-nav-link">Agences</a>
+      <a href="actualites.html" class="admin-nav-link">Actualités</a>
+      <a href="operateurs.html" class="admin-nav-link">Opérateurs de transfert</a>
+      <a href="produits-epargne.html" class="admin-nav-link active">Produits d'épargne</a>
+      <a href="messages.html" class="admin-nav-link">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Produits d'épargne</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
+        Gestion des produits affichés dans la section "Nos Produits d'Épargne" de la page Nos services.
+      </p>
+
+      <div class="admin-panel">
+        <div id="alerte" class="admin-alerte"></div>
+        <h3 id="titre-formulaire" style="color: var(--color-green-dark); margin-bottom: 1rem;">Ajouter un produit</h3>
+
+        <form id="form-produit">
+          <input type="hidden" id="produit-id">
+          <div class="simulator-form-grid">
+            <div>
+              <div class="form-group">
+                <label for="code">Code (ex : EL, DAV, EB, DAT)</label>
+                <input type="text" id="code" class="form-control" maxlength="10" required>
+              </div>
+              <div class="form-group">
+                <label for="nom">Nom complet</label>
+                <input type="text" id="nom" class="form-control" maxlength="150" required>
+              </div>
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" class="form-control" rows="3" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="ordre">Ordre d'affichage</label>
+                <input type="number" id="ordre" class="form-control" min="0" value="0">
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label for="depot_initial">Dépôt initial requis</label>
+                <input type="text" id="depot_initial" class="form-control" placeholder="Ex : 3 000 FCFA (particulier)" required>
+              </div>
+              <div class="form-group">
+                <label for="versement_min">Versement minimum</label>
+                <input type="text" id="versement_min" class="form-control" placeholder="Ex : Libre, ou 5 000 FCFA" required>
+              </div>
+              <div class="form-group">
+                <label for="duree_min">Durée minimum</label>
+                <input type="text" id="duree_min" class="form-control" placeholder="Ex : Sans engagement, ou 6 mois" required>
+              </div>
+              <div class="form-group">
+                <label for="taux">Taux annuel (décimal, ex : 0.035 pour 3,5%)</label>
+                <input type="number" id="taux" class="form-control" step="0.0001" min="0" placeholder="Laisser vide si non rémunéré">
+              </div>
+              <div class="form-group">
+                <label for="taux_affiche">Taux affiché (texte)</label>
+                <input type="text" id="taux_affiche" class="form-control" placeholder="Ex : 3,5 % / an, ou Non rémunéré" required>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button type="submit" class="btn btn-primary" id="btn-submit-produit">Ajouter</button>
+            <button type="button" class="btn btn-secondary" id="btn-annuler" style="display:none;">Annuler la modification</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-panel">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr><th>Code</th><th>Nom</th><th>Taux affiché</th><th>Ordre</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="corps-tableau-produits"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const alerte = document.getElementById('alerte');
+    const form = document.getElementById('form-produit');
+    const corpsTableau = document.getElementById('corps-tableau-produits');
+    const btnSubmit = document.getElementById('btn-submit-produit');
+    const btnAnnuler = document.getElementById('btn-annuler');
+    const titreFormulaire = document.getElementById('titre-formulaire');
+
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    function reinitialiserFormulaire() {
+      form.reset();
+      document.getElementById('produit-id').value = '';
+      btnSubmit.textContent = 'Ajouter';
+      titreFormulaire.textContent = 'Ajouter un produit';
+      btnAnnuler.style.display = 'none';
+    }
+
+    async function chargerProduits() {
+      try {
+        const liste = await appelAdmin('../api/admin/produits-epargne.php');
+        corpsTableau.innerHTML = liste.map((p) => `
+          <tr>
+            <td>${p.code}</td>
+            <td>${p.nom}</td>
+            <td>${p.taux_affiche}</td>
+            <td>${p.ordre}</td>
+            <td class="admin-table-actions">
+              <button class="btn btn-sm btn-secondary" onclick='remplirFormulaire(${JSON.stringify(p).replace(/'/g, "&#39;")})'>Modifier</button>
+              <button class="btn btn-sm btn-red" onclick="supprimerProduit(${p.id}, '${p.nom.replace(/'/g, "&#39;")}')">Supprimer</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    function remplirFormulaire(p) {
+      document.getElementById('produit-id').value = p.id;
+      document.getElementById('code').value = p.code;
+      document.getElementById('nom').value = p.nom;
+      document.getElementById('description').value = p.description;
+      document.getElementById('depot_initial').value = p.depot_initial;
+      document.getElementById('versement_min').value = p.versement_min;
+      document.getElementById('duree_min').value = p.duree_min;
+      document.getElementById('taux').value = p.taux ?? '';
+      document.getElementById('taux_affiche').value = p.taux_affiche;
+      document.getElementById('ordre').value = p.ordre;
+      btnSubmit.textContent = 'Enregistrer les modifications';
+      titreFormulaire.textContent = `Modifier : ${p.nom}`;
+      btnAnnuler.style.display = 'inline-flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function supprimerProduit(id, nom) {
+      if (!confirm(`Supprimer définitivement le produit "${nom}" ?`)) return;
+      try {
+        await appelAdmin(`../api/admin/produits-epargne.php?id=${id}`, { method: 'DELETE' });
+        chargerProduits();
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    btnAnnuler.addEventListener('click', reinitialiserFormulaire);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masquerAlerte(alerte);
+
+      const id = document.getElementById('produit-id').value;
+      const corps = {
+        code: document.getElementById('code').value,
+        nom: document.getElementById('nom').value,
+        description: document.getElementById('description').value,
+        depot_initial: document.getElementById('depot_initial').value,
+        versement_min: document.getElementById('versement_min').value,
+        duree_min: document.getElementById('duree_min').value,
+        taux: document.getElementById('taux').value,
+        taux_affiche: document.getElementById('taux_affiche').value,
+        ordre: document.getElementById('ordre').value,
+      };
+
+      try {
+        if (id) {
+          await appelAdmin(`../api/admin/produits-epargne.php?id=${id}`, { method: 'PUT', body: JSON.stringify(corps) });
+          afficherAlerte(alerte, 'Produit mis à jour.', 'succes');
+        } else {
+          await appelAdmin('../api/admin/produits-epargne.php', { method: 'POST', body: JSON.stringify(corps) });
+          afficherAlerte(alerte, 'Produit créé.', 'succes');
+        }
+        reinitialiserFormulaire();
+        chargerProduits();
+      } catch (err) {
+        const detail = err.champs && Object.values(err.champs)[0];
+        afficherAlerte(alerte, detail || err.message, 'erreur');
+      }
+    });
+
+    chargerProduits();
+  </script>
+</body>
+</html>

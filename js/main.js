@@ -17,10 +17,73 @@ document.addEventListener('DOMContentLoaded', () => {
   chargerActualitesDepuisAPI();
   chargerOperateursDepuisAPI();
   chargerNombreAgencesDepuisAPI();
+  chargerProduitsEpargneDepuisAPI();
   initFAQ();
   initContactForm();
   initWhatsAppButton();
 });
+
+/**
+ * 1sexies. Va chercher les produits d'épargne dans la base (via l'API
+ * publique), remplit le tableau de nos-services.html ET met à jour
+ * COOPEC_DATA.produitsEpargne + le menu déroulant du simulateur, pour que
+ * la calculatrice d'intérêts reste cohérente avec les vrais taux en base.
+ */
+async function chargerProduitsEpargneDepuisAPI() {
+  const corpsTableau = document.getElementById('produits-epargne-corps');
+  if (!corpsTableau) return;
+
+  try {
+    const reponse = await fetch('/api/public/produits-epargne.php');
+    if (!reponse.ok) throw new Error('Réponse API invalide');
+    const produits = await reponse.json();
+
+    if (!produits.length) {
+      corpsTableau.innerHTML = '<tr><td colspan="4" style="color: var(--color-muted);">Aucun produit renseigné pour le moment.</td></tr>';
+      return;
+    }
+
+    corpsTableau.innerHTML = produits.map(p => {
+      const badgeClasse = p.taux === null ? 'badge-taux badge-variable' : 'badge-taux';
+      return `
+        <tr>
+          <td><strong>${escapeHtml(p.nom)} (${escapeHtml(p.code)})</strong></td>
+          <td>${escapeHtml(p.description)}</td>
+          <td>${escapeHtml(p.depot_initial)}</td>
+          <td><span class="${badgeClasse}">${escapeHtml(p.taux_affiche)}</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    // Synchronisation avec COOPEC_DATA (utilisé par simulator.js) et le menu déroulant
+    if (window.COOPEC_DATA) {
+      COOPEC_DATA.produitsEpargne = produits.map(p => ({
+        code: p.code,
+        nom: p.nom,
+        description: p.description,
+        depotInitial: p.depot_initial,
+        versementMin: p.versement_min,
+        dureeMin: p.duree_min,
+        taux: p.taux !== null ? Number(p.taux) : null,
+        tauxAffiche: p.taux_affiche,
+      }));
+    }
+
+    const selectProduit = document.getElementById('epargne-produit');
+    if (selectProduit) {
+      const valeurActuelle = selectProduit.value;
+      selectProduit.innerHTML = produits.map(p =>
+        `<option value="${escapeHtml(p.code)}">${escapeHtml(p.nom)} (${escapeHtml(p.code)}) — ${escapeHtml(p.taux_affiche)}</option>`
+      ).join('');
+      if (produits.some(p => p.code === valeurActuelle)) {
+        selectProduit.value = valeurActuelle;
+      }
+    }
+  } catch (e) {
+    corpsTableau.innerHTML = '<tr><td colspan="4" style="color: var(--color-muted);">Produits momentanément indisponibles.</td></tr>';
+    console.warn('[main.js] API produits épargne injoignable, valeurs de secours (data.js) conservées.', e);
+  }
+}
 
 /**
  * 1quinquies. Met à jour le compteur "Nos agences (X)" du menu avec le vrai
