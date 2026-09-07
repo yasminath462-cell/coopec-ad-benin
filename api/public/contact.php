@@ -39,7 +39,7 @@ $erreurs = [];
 if (mb_strlen($nom) < 2) {
     $erreurs['nom'] = 'Veuillez saisir votre nom complet.';
 }
-if (!preg_match('/^(?:\+?229)?[0-9]{8}$/', $telephone)) {
+if (!preg_match('/^(?:\+?229)?01[0-9]{8}$/', $telephone)) {
     $erreurs['telephone'] = 'Numéro de téléphone béninois invalide.';
 }
 if (mb_strlen($message) < 10) {

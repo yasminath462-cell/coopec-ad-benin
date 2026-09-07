@@ -272,12 +272,12 @@ function initContactForm() {
       errorMsg = 'Veuillez saisir votre nom complet.';
     }
 
-    // Validation Téléphone Bénin (+229 ou 8 chiffres)
+    // Validation Téléphone Bénin (+229 optionnel puis 01 + 8 chiffres = nouveau plan de numerotation)
     const telVal = telInput ? telInput.value.replace(/\s+/g, '') : '';
-    const beninPhoneRegex = /^(?:\+?229)?[0-9]{8}$/;
+    const beninPhoneRegex = /^(?:\+?229)?01[0-9]{8}$/;
     if (isValid && (!telVal || !beninPhoneRegex.test(telVal))) {
       isValid = false;
-      errorMsg = 'Veuillez saisir un numéro de téléphone béninois valide (ex: 94 01 78 36 ou +229 94 01 78 36).';
+      errorMsg = 'Veuillez saisir un numéro de téléphone béninois valide, débutant par 01 (ex: 01 94 01 78 36 ou +229 01 94 01 78 36).';
     }
 
     // Validation Message (min 10 caractères)
