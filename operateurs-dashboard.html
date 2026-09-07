@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Opérateurs de transfert — Espace administrateur COOPEC-AD/BENIN</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar-title">COOPEC-AD Admin</div>
+      <a href="index.html" class="admin-nav-link">Tableau de bord</a>
+      <a href="institution.html" class="admin-nav-link">Institution</a>
+      <a href="agences.html" class="admin-nav-link">Agences</a>
+      <a href="actualites.html" class="admin-nav-link">Actualités</a>
+      <a href="operateurs.html" class="admin-nav-link active">Opérateurs de transfert</a>
+      <a href="messages.html" class="admin-nav-link">Messages reçus</a>
+      <a href="#" id="lien-deconnexion" class="admin-nav-link deconnexion">Déconnexion</a>
+    </nav>
+
+    <main class="admin-main">
+      <h1 class="admin-page-title">Opérateurs de transfert</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
+        Gestion des opérateurs affichés dans la section "Transfert d'argent" du site public — nom, type et logo.
+      </p>
+
+      <div class="admin-panel">
+        <div id="alerte" class="admin-alerte"></div>
+        <h3 id="titre-formulaire" style="color: var(--color-green-dark); margin-bottom: 1rem;">Ajouter un opérateur</h3>
+
+        <form id="form-operateur" enctype="multipart/form-data">
+          <input type="hidden" id="operateur-id">
+          <input type="hidden" id="methode-forcee">
+          <div class="simulator-form-grid">
+            <div>
+              <div class="form-group">
+                <label for="nom">Nom de l'opérateur</label>
+                <input type="text" id="nom" class="form-control" maxlength="100" placeholder="Ex : MTN Mobile Money" required>
+                <small id="compteur-nom" class="admin-compteur"></small>
+              </div>
+              <div class="form-group">
+                <label for="type">Type</label>
+                <select id="type" class="form-control" required>
+                  <option value="national">National & Sous-régional</option>
+                  <option value="international">International</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="ordre">Ordre d'affichage</label>
+                <input type="number" id="ordre" class="form-control" min="0" value="0">
+                <small style="color:var(--color-muted); font-size:0.8rem;">Les opérateurs s'affichent du plus petit au plus grand numéro.</small>
+              </div>
+            </div>
+            <div>
+              <div class="form-group">
+                <label for="logo">Logo (jpg, png ou webp, 1 Mo max)</label>
+                <input type="file" id="logo" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                <small style="color:var(--color-muted); font-size:0.8rem;">Utiliser le logo officiel de l'opérateur, obtenu directement auprès du partenaire.</small>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button type="submit" class="btn btn-primary" id="btn-submit-operateur">Ajouter</button>
+            <button type="button" class="btn btn-secondary" id="btn-annuler" style="display:none;">Annuler la modification</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-panel">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr><th>Logo</th><th>Nom</th><th>Type</th><th>Ordre</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="corps-tableau-operateurs"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    const alerte = document.getElementById('alerte');
+    const form = document.getElementById('form-operateur');
+    const corpsTableau = document.getElementById('corps-tableau-operateurs');
+    const btnSubmit = document.getElementById('btn-submit-operateur');
+    const btnAnnuler = document.getElementById('btn-annuler');
+    const titreFormulaire = document.getElementById('titre-formulaire');
+
+    document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('../api/admin/logout.php', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+      window.location.href = 'login.html';
+    });
+
+    function reinitialiserFormulaire() {
+      form.reset();
+      document.getElementById('operateur-id').value = '';
+      document.getElementById('methode-forcee').value = '';
+      btnSubmit.textContent = 'Ajouter';
+      titreFormulaire.textContent = 'Ajouter un opérateur';
+      btnAnnuler.style.display = 'none';
+    }
+
+    async function chargerOperateurs() {
+      try {
+        const liste = await appelAdmin('../api/admin/operateurs-transfert.php');
+        corpsTableau.innerHTML = liste.map((o) => `
+          <tr>
+            <td>${o.logo ? `<img src="../${o.logo}" alt="${o.nom}" style="height:32px; width:auto;">` : '—'}</td>
+            <td>${o.nom}</td>
+            <td>${o.type === 'national' ? 'National & Sous-régional' : 'International'}</td>
+            <td>${o.ordre}</td>
+            <td class="admin-table-actions">
+              <button class="btn btn-sm btn-secondary" onclick='remplirFormulaire(${JSON.stringify(o).replace(/'/g, "&#39;")})'>Modifier</button>
+              <button class="btn btn-sm btn-red" onclick="supprimerOperateur(${o.id}, '${o.nom.replace(/'/g, "&#39;")}')">Supprimer</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    function remplirFormulaire(o) {
+      document.getElementById('operateur-id').value = o.id;
+      document.getElementById('methode-forcee').value = 'PUT';
+      document.getElementById('nom').value = o.nom;
+      document.getElementById('type').value = o.type;
+      document.getElementById('ordre').value = o.ordre;
+      btnSubmit.textContent = 'Enregistrer les modifications';
+      titreFormulaire.textContent = `Modifier : ${o.nom}`;
+      btnAnnuler.style.display = 'inline-flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function supprimerOperateur(id, nom) {
+      if (!confirm(`Supprimer définitivement l'opérateur "${nom}" ?`)) return;
+      try {
+        await appelAdmin(`../api/admin/operateurs-transfert.php?id=${id}`, { method: 'DELETE' });
+        chargerOperateurs();
+      } catch (err) {
+        afficherAlerte(alerte, err.message, 'erreur');
+      }
+    }
+
+    btnAnnuler.addEventListener('click', reinitialiserFormulaire);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masquerAlerte(alerte);
+
+      const id = document.getElementById('operateur-id').value;
+      const donneesForm = new FormData();
+      donneesForm.append('nom', document.getElementById('nom').value);
+      donneesForm.append('type', document.getElementById('type').value);
+      donneesForm.append('ordre', document.getElementById('ordre').value);
+      const fichierLogo = document.getElementById('logo').files[0];
+      if (fichierLogo) donneesForm.append('logo', fichierLogo);
+
+      try {
+        if (id) {
+          donneesForm.append('_method', 'PUT');
+          await appelAdmin(`../api/admin/operateurs-transfert.php?id=${id}`, { method: 'POST', body: donneesForm });
+          afficherAlerte(alerte, 'Opérateur mis à jour.', 'succes');
+        } else {
+          await appelAdmin('../api/admin/operateurs-transfert.php', { method: 'POST', body: donneesForm });
+          afficherAlerte(alerte, 'Opérateur créé.', 'succes');
+        }
+        reinitialiserFormulaire();
+        chargerOperateurs();
+      } catch (err) {
+        const detail = err.champs && Object.values(err.champs)[0];
+        afficherAlerte(alerte, detail || err.message, 'erreur');
+      }
+    });
+
+    function initCompteur(idChamp) {
+      const champ = document.getElementById(idChamp);
+      const compteur = document.getElementById(`compteur-${idChamp}`);
+      if (!champ || !compteur) return;
+      const max = Number(champ.getAttribute('maxlength'));
+      function majCompteur() {
+        const longueur = champ.value.length;
+        const restant = max - longueur;
+        if (restant < 0) {
+          compteur.textContent = `⚠ ${longueur} / ${max} — dépasse de ${-restant} caractère(s)`;
+          compteur.style.color = 'var(--color-red, #c0392b)';
+        } else if (restant <= 20) {
+          compteur.textContent = `${longueur} / ${max} caractères — presque plein`;
+          compteur.style.color = '#b8860b';
+        } else {
+          compteur.textContent = `${longueur} / ${max} caractères`;
+          compteur.style.color = 'var(--color-muted, #666)';
+        }
+      }
+      champ.addEventListener('input', majCompteur);
+      majCompteur();
+    }
+
+    ['nom'].forEach(initCompteur);
+
+    chargerOperateurs();
+  </script>
+</body>
+</html>

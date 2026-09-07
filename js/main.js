@@ -15,10 +15,68 @@ document.addEventListener('DOMContentLoaded', () => {
   injectDynamicData();
   chargerInstitutionDepuisAPI();
   chargerActualitesDepuisAPI();
+  chargerOperateursDepuisAPI();
+  chargerNombreAgencesDepuisAPI();
   initFAQ();
   initContactForm();
   initWhatsAppButton();
 });
+
+/**
+ * 1quinquies. Met à jour le compteur "Nos agences (X)" du menu avec le vrai
+ * nombre d'agences en base — remplace la valeur figée issue de data.js une
+ * fois l'API disponible.
+ */
+async function chargerNombreAgencesDepuisAPI() {
+  try {
+    const reponse = await fetch('/api/public/agences.php');
+    if (!reponse.ok) return;
+    const agences = await reponse.json();
+    document.querySelectorAll('[data-bind="agences-count"]').forEach(el => {
+      el.textContent = agences.length;
+    });
+  } catch (e) {
+    // Silencieux : la valeur figée de data.js reste affichée en repli.
+  }
+}
+
+/**
+ * 1quater. Va chercher les opérateurs de transfert dans la base (via l'API
+ * publique), et les affiche dans #operateurs-transfert-liste si ce conteneur
+ * existe sur la page (seule nos-services.html en a un).
+ */
+async function chargerOperateursDepuisAPI() {
+  const conteneur = document.getElementById('operateurs-transfert-liste');
+  if (!conteneur) return;
+
+  try {
+    const reponse = await fetch('/api/public/operateurs-transfert.php');
+    if (!reponse.ok) throw new Error('Réponse API invalide');
+    const operateurs = await reponse.json();
+
+    if (!operateurs.length) {
+      conteneur.innerHTML = '<p style="color: var(--color-muted); grid-column: 1/-1;">Aucun opérateur renseigné pour le moment.</p>';
+      return;
+    }
+
+    conteneur.innerHTML = operateurs.map(o => {
+      const typeLabel = o.type === 'national' ? 'National & Sous-régional' : 'International';
+      const logo = o.logo
+        ? `<img src="${escapeHtml(o.logo)}" alt="${escapeHtml(o.nom)}" style="height:40px; width:auto; margin-bottom:0.75rem;">`
+        : '';
+      return `
+        <div class="card-item" style="text-align: center; border-top: 4px solid var(--color-green);">
+          ${logo}
+          <h3 style="color: var(--color-green-dark); margin-bottom: 0.5rem;">${escapeHtml(o.nom)}</h3>
+          <p style="font-size: 0.85rem; color: var(--color-muted);">${typeLabel}</p>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    conteneur.innerHTML = '<p style="color: var(--color-muted); grid-column: 1/-1;">Opérateurs momentanément indisponibles.</p>';
+    console.warn('[main.js] API opérateurs injoignable.', e);
+  }
+}
 
 /**
  * 1ter. Va chercher les actualités publiées dans la base (via l'API publique),

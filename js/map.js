@@ -1,21 +1,35 @@
 /**
  * COOPEC-AD/BENIN — Cartographie Leaflet & Répertoire des Agences (map.js)
  * Implémente la carte interactive Leaflet/OpenStreetMap, le filtre dynamique des départements,
- * et le rendu 100% dynamique de la liste des 12 agences à partir de COOPEC_DATA.agences.
+ * et le rendu de la liste des agences — sourcées en priorité depuis la base de données
+ * (via l'API publique), avec repli sur COOPEC_DATA.agences si l'API est injoignable.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // 1. Contrôle d'intégrité
-  if (!window.COOPEC_DATA || !Array.isArray(COOPEC_DATA.agences)) {
-    console.error('[map.js] COOPEC_DATA.agences manquant ou invalide — carte et liste non initialisées.');
+document.addEventListener('DOMContentLoaded', async () => {
+  let agences = null;
+
+  try {
+    const reponse = await fetch('/api/public/agences.php');
+    if (!reponse.ok) throw new Error('Réponse API invalide');
+    const donnees = await reponse.json();
+    // Conversion est_siege (SQL) -> estSiege (JS), seul champ dont la casse diffère.
+    agences = donnees.map(a => ({ ...a, estSiege: !!a.est_siege }));
+  } catch (e) {
+    console.warn('[map.js] API agences injoignable, repli sur COOPEC_DATA.agences.', e);
+    if (window.COOPEC_DATA && Array.isArray(COOPEC_DATA.agences)) {
+      agences = COOPEC_DATA.agences;
+    }
+  }
+
+  if (!agences || !Array.isArray(agences) || agences.length === 0) {
+    console.error('[map.js] Aucune donnée agences disponible — carte et liste non initialisées.');
     return;
   }
 
-  initAgencesMapAndList();
+  initAgencesMapAndList(agences);
 });
 
-function initAgencesMapAndList() {
-  const agences = COOPEC_DATA.agences;
+function initAgencesMapAndList(agences) {
   const mapElement = document.getElementById('agences-map');
   const listContainer = document.getElementById('agences-list');
   const deptSelect = document.getElementById('filter-departement');
