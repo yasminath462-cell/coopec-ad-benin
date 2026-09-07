@@ -19,6 +19,7 @@ $champsAutorises = [
     'nom_court', 'raison_sociale', 'statut_juridique', 'agrement_bceao', 'ifu',
     'siege_social', 'telephone_principal', 'telephone_whatsapp', 'email', 'site_web',
     'horaires_texte', 'membres_count', 'vision', 'mission', 'email_notifications',
+    'delai_relance_heures',
 ];
 
 $erreurs = [];

@@ -55,6 +55,11 @@
                 <small style="color:var(--color-muted); font-size:0.8rem;">Distinct de l'email officiel ci-dessus — utilise uniquement pour vous avertir des nouveaux messages recus via le formulaire de contact.</small>
               </div>
               <div class="form-group">
+                <label for="delai_relance_heures">Délai de relance (en heures)</label>
+                <input type="number" id="delai_relance_heures" class="form-control" min="1" placeholder="Ex : 24 pour un rappel apres 1 jour, 72 pour 3 jours">
+                <small style="color:var(--color-muted); font-size:0.8rem;">Un email de rappel est renvoye si un message reste non lu au-dela de ce delai.</small>
+              </div>
+              <div class="form-group">
                 <label for="membres_count">Nombre de membres</label>
                 <input type="number" id="membres_count" class="form-control" min="0">
               </div>
@@ -84,7 +89,7 @@
   <script>
     const alerte = document.getElementById('alerte');
     const form = document.getElementById('form-institution');
-    const champs = ['nom_court', 'telephone_principal', 'email', 'email_notifications', 'membres_count', 'horaires_texte', 'vision', 'mission'];
+    const champs = ['nom_court', 'telephone_principal', 'email', 'email_notifications', 'delai_relance_heures', 'membres_count', 'horaires_texte', 'vision', 'mission'];
 
     document.getElementById('lien-deconnexion').addEventListener('click', async (e) => {
       e.preventDefault();
